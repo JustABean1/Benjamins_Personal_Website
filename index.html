@@ -77,6 +77,18 @@
   .kit span { display:inline-block; margin:0 8px 8px 0; padding:5px 12px; border:1px solid var(--line); border-radius:99px; font-size:14px; transition:.3s; }
   .kit span:hover { border-color:#fff8; box-shadow:0 0 18px -4px var(--glow); }
   #log .own .n { color:#b57bff; text-shadow:0 0 10px #b57bff88; } #log .own { color:#dcc4ff; }
+  .feature { position:relative; overflow:hidden; border:1px solid var(--line); border-radius:8px; padding:clamp(22px,4vw,46px); margin-bottom:44px; background:#050505; }
+  .feature::before { content:""; position:absolute; inset:-50% auto auto -10%; width:70%; height:110%; background:radial-gradient(closest-side, rgba(181,123,255,.2), transparent); pointer-events:none; }
+  .feature > * { position:relative; }
+  .tag { font-size:12px; letter-spacing:.3em; text-transform:uppercase; color:var(--dim); }
+  .feature h3 { font-size:clamp(34px,6vw,64px); margin:10px 0 16px; letter-spacing:-.03em; line-height:1; }
+  .feature p { max-width:680px; color:#cfd4e2; margin:0 0 14px; }
+  .feature p a { color:#c9a6ff; }
+  .feature small { display:block; max-width:680px; color:var(--dim); font-size:13px; line-height:1.6; }
+  .dl { display:flex; flex-wrap:wrap; gap:12px; margin:24px 0 18px; }
+  .btn { display:inline-block; text-decoration:none; }
+  .btn.primary { background:#fff; color:#000; border-color:#fff; }
+  .btn.primary:hover { box-shadow:0 0 28px -2px #fff9; }
   @media (prefers-reduced-motion:reduce) { * { animation:none !important; } html { scroll-behavior:auto; } }
 </style>
 </head>
@@ -97,6 +109,17 @@
 
   <section id="work">
     <h2>Selected work</h2>
+    <article class="feature">
+      <span class="tag">Featured project · Desktop app</span>
+      <h3>MC Chat</h3>
+      <p>A Minecraft-style chat overlay that floats over whatever you're doing, even full-screen apps, so you can talk without alt-tabbing. Press Option+T, type, hit Enter. Messages sync live through a Firebase Realtime Database. I designed the look, wrote the code in Electron and JavaScript, and built the backend myself.</p>
+      <p>Want to try it before you download? There's a live example on this site: the <a href="#chat">Chat section</a> below is the same message board the app talks to.</p>
+      <div class="dl">
+        <a class="btn primary" href="https://github.com/JustABean1/JustABean1.github.io/releases/latest/download/MC-Chat-Mac-AppleSilicon.zip">Download for Apple Silicon · 123 MB</a>
+        <a class="btn" href="https://github.com/JustABean1/JustABean1.github.io/releases/latest/download/MC-Chat-Mac-Intel.zip">Download for Intel Mac · 126 MB</a>
+      </div>
+      <small>Unzip and open MC Chat.app. Since it isn't Apple-notarized, macOS may block it the first time: go to System Settings → Privacy &amp; Security and choose Open Anyway. Option+T opens and closes chat, /name changes your name, and /quit closes the app.</small>
+    </article>
     <div id="grid"><p class="empty">Loading…</p></div>
   </section>
 
@@ -154,7 +177,7 @@
 <script>
 /* ============ CONFIG ============ */
 const DB = 'https://chatsystem-3121f-default-rtdb.firebaseio.com';
-const API_KEY = 'AIzaSyCtiM3i7ei8uBShnHudSxlQjOoZbFrJWW0';   // Firebase console > Project settings > General > Web API key
+const API_KEY = 'PASTE_FIREBASE_WEB_API_KEY';   // Firebase console > Project settings > General > Web API key
 const $ = (s) => document.querySelector(s);
 $('#yr').textContent = new Date().getFullYear();
 
