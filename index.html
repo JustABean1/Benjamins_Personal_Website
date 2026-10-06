@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ben Ajouri — Designer</title>
+<style>
+  :root { --fg:#f4f6fb; --dim:#7d8496; --line:rgba(255,255,255,.1); --glow:#8fb4ff; --p:0; }
+  * { box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body { margin:0; background:#000; color:var(--fg); font:16px/1.6 "Helvetica Neue", Inter, Arial, sans-serif; overflow-x:hidden; }
+  #lights { position:fixed; inset:0; width:100%; height:100%; z-index:0; pointer-events:none; }
+  main, header, footer { position:relative; z-index:1; }
+
+  header { position:fixed; top:0; left:0; right:0; z-index:5; display:flex; justify-content:space-between; padding:20px 4vw;
+           backdrop-filter:blur(10px); background:linear-gradient(#000a,#0000); }
+  header a { color:var(--fg); text-decoration:none; font-size:13px; letter-spacing:.2em; text-transform:uppercase; margin-left:28px; opacity:.7; transition:.3s; }
+  header a:hover { opacity:1; text-shadow:0 0 12px var(--glow); }
+  header .logo { margin:0; opacity:1; font-weight:700; }
+
+  section { padding:14vh 4vw; max-width:1300px; margin:auto; }
+  h2 { font-size:13px; letter-spacing:.35em; text-transform:uppercase; color:var(--dim); font-weight:500; margin:0 0 40px; }
+
+  /* hero: chrome-like sheen driven by scroll, with a mirror reflection */
+  #hero { min-height:100vh; display:flex; flex-direction:column; justify-content:center; }
+  #hero h1 { font-size:clamp(48px,11vw,170px); line-height:.95; margin:0; letter-spacing:-.04em; font-weight:800;
+             background:linear-gradient(105deg,#1a1a1a 0%,#6b7280 30%,#fff 50%,#6b7280 70%,#1a1a1a 100%);
+             background-size:300% 100%; background-position:calc(var(--p)*100%) 0;
+             -webkit-background-clip:text; background-clip:text; color:transparent;
+             -webkit-box-reflect:below -.08em linear-gradient(transparent 50%, rgba(255,255,255,.22)); }
+  #hero p { color:var(--dim); max-width:520px; margin:60px 0 0; font-size:18px; }
+  .cue { margin-top:40px; font-size:12px; letter-spacing:.3em; color:var(--dim); animation:pulse 2.4s infinite; }
+  @keyframes pulse { 50% { opacity:.3; } }
+
+  /* gallery */
+  #grid { columns:3 300px; column-gap:22px; }
+  .card { position:relative; break-inside:avoid; margin:0 0 22px; border:1px solid var(--line); border-radius:6px; overflow:hidden; cursor:zoom-in;
+          background:#050505; transition:transform .25s, border-color .3s, box-shadow .3s; opacity:0; transform:translateY(40px); }
+  .card.in { opacity:1; transform:none; transition:opacity .8s, transform .8s, border-color .3s, box-shadow .3s; }
+  .card:hover { border-color:#fff4; box-shadow:0 0 40px -10px var(--glow); }
+  .card img { display:block; width:100%; }
+  .card::after { content:""; position:absolute; inset:0; pointer-events:none; opacity:0; transition:.3s;
+                 background:radial-gradient(circle at var(--mx,50%) var(--my,50%), rgba(255,255,255,.28), transparent 45%); }
+  .card:hover::after { opacity:1; }
+  .card figcaption { padding:12px 14px; font-size:13px; color:var(--dim); border-top:1px solid var(--line); }
+  .card figcaption b { color:var(--fg); font-weight:600; display:block; }
+  .del { position:absolute; top:8px; right:8px; z-index:2; background:#000c; color:#fff; border:1px solid #fff4; border-radius:50%; width:28px; height:28px; cursor:pointer; display:none; }
+  body.admin .del { display:block; }
+  .empty { color:var(--dim); }
+
+  /* chat */
+  #chat { border:1px solid var(--line); border-radius:8px; background:#050505cc; backdrop-filter:blur(6px); max-width:760px; }
+  #log { height:340px; overflow-y:auto; padding:14px 16px; font:14px/1.7 ui-monospace, Menlo, monospace; }
+  #log div { word-wrap:anywhere; } #log .sys { color:#ffd866; } #log .n { color:var(--glow); }
+  #chatbar { display:flex; border-top:1px solid var(--line); }
+  #chatbar input { flex:1; background:transparent; border:0; outline:0; color:var(--fg); padding:14px 16px; font:inherit; }
+  button, .btn { background:transparent; color:var(--fg); border:1px solid var(--line); padding:10px 18px; border-radius:4px; cursor:pointer; font:inherit; letter-spacing:.1em; transition:.3s; }
+  button:hover { border-color:#fff8; box-shadow:0 0 20px -4px var(--glow); }
+  #chatbar button { border:0; border-left:1px solid var(--line); border-radius:0; }
+
+  #about p { font-size:clamp(20px,2.6vw,34px); line-height:1.35; max-width:900px; margin:0; color:#cfd4e2; }
+  footer { padding:60px 4vw; display:flex; justify-content:space-between; color:var(--dim); font-size:13px; }
+  footer a { color:var(--dim); } footer button { padding:4px 10px; font-size:12px; color:var(--dim); }
+
+  /* lightbox + admin dialog */
+  #lb { position:fixed; inset:0; z-index:20; background:#000e; display:none; align-items:center; justify-content:center; cursor:zoom-out; }
+  #lb img { max-width:92vw; max-height:92vh; box-shadow:0 0 120px -20px var(--glow); }
+  dialog { background:#0a0a0a; color:var(--fg); border:1px solid var(--line); border-radius:8px; padding:26px; width:min(420px,92vw); }
+  dialog::backdrop { background:#000a; }
+  dialog input, dialog textarea { width:100%; margin:6px 0 14px; padding:10px; background:#000; border:1px solid var(--line); border-radius:4px; color:var(--fg); font:inherit; }
+  dialog h3 { margin:0 0 14px; font-weight:600; }
+  #msg { font-size:13px; color:#ffd866; min-height:18px; }
+  .rule { color:var(--dim); font-size:14px; margin:-20px 0 22px; }
+  .kit { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:22px; }
+  .kit div { border:1px solid var(--line); border-radius:6px; padding:22px; background:#050505cc; }
+  .kit h3 { margin:0 0 14px; font-size:12px; letter-spacing:.3em; text-transform:uppercase; color:var(--dim); font-weight:500; }
+  .kit span { display:inline-block; margin:0 8px 8px 0; padding:5px 12px; border:1px solid var(--line); border-radius:99px; font-size:14px; transition:.3s; }
+  .kit span:hover { border-color:#fff8; box-shadow:0 0 18px -4px var(--glow); }
+  #log .own .n { color:#b57bff; text-shadow:0 0 10px #b57bff88; } #log .own { color:#dcc4ff; }
+  @media (prefers-reduced-motion:reduce) { * { animation:none !important; } html { scroll-behavior:auto; } }
+</style>
+</head>
+<body>
+<canvas id="lights"></canvas>
+
+<header>
+  <a class="logo" href="#hero">BJA</a>
+  <nav><a href="#work">Work</a><a href="#about">About</a><a href="#toolkit">Toolkit</a><a href="#chat">Chat</a></nav>
+</header>
+
+<main>
+  <section id="hero">
+    <h1>BEN<br>AJOURI</h1>
+    <p>Sleek. Simple. Good. Web, graphic, product and UX/UI design from Winona State University. Open to internships and freelance, remote friendly.</p>
+    <div class="cue">SCROLL</div>
+  </section>
+
+  <section id="work">
+    <h2>Selected work</h2>
+    <div id="grid"><p class="empty">Loading…</p></div>
+  </section>
+
+  <section id="about">
+    <h2>About</h2>
+    <p>I start with a vision, then build it until it's real, whether that's an interface, a poster or something you can hold. I fell for design through computer science and the first websites I built, and I've been sharpening the craft ever since. Paul Rand's clarity and Keith Haring's energy guide my eye, and music shapes everything else. Trying too hard shows, so I aim for work that's sleek, simple and good, and I treat every mistake as a step toward something I'm proud of.</p>
+  </section>
+
+  <section id="toolkit">
+    <h2>Toolkit</h2>
+    <div class="kit">
+      <div><h3>Design</h3><span>Photoshop</span><span>Illustrator</span><span>InDesign</span><span>TinkerCAD</span><span>Prototyping</span><span>Project boards</span></div>
+      <div><h3>Code</h3><span>CSS</span><span>Java</span><span>Python</span><span>Kotlin</span><span>Rust</span><span>Databases</span></div>
+      <div><h3>Focus</h3><span>Web</span><span>UX/UI</span><span>Product</span><span>Advertising</span><span>Print</span><span>HCI</span></div>
+    </div>
+  </section>
+
+  <section id="chat">
+    <h2>Chat</h2>
+    <p class="rule">A message board. Drop a line, and see if I'm around. Keep it kind: no racism, hate or harassment.</p>
+    <div id="chat">
+      <div id="log"></div>
+      <div id="chatbar">
+        <input id="box" maxlength="256" placeholder="Type a message, or your name first" autocomplete="off">
+        <button id="send">SEND</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <span>© <span id="yr"></span> Ben Ajouri · <a href="mailto:ben.ajourii@gmail.com">ben.ajourii@gmail.com</a> · <a href="Resume.pdf" download>Résumé</a></span>
+  <button id="adminBtn">admin</button>
+</footer>
+
+<div id="lb"><img alt=""></div>
+
+<dialog id="login">
+  <h3>Admin sign in</h3>
+  <input id="em" type="email" placeholder="email" autocomplete="username">
+  <input id="pw" type="password" placeholder="password" autocomplete="current-password">
+  <div id="msg"></div>
+  <button id="go">SIGN IN</button> <button id="x1" type="button">CANCEL</button>
+</dialog>
+
+<dialog id="up">
+  <h3>Add a project</h3>
+  <input id="t" placeholder="Title">
+  <textarea id="d" rows="3" placeholder="Short description"></textarea>
+  <input id="f" type="file" accept="image/*">
+  <div id="umsg" style="font-size:13px;min-height:18px;color:#ffd866"></div>
+  <button id="post">UPLOAD</button> <button id="x2" type="button">CLOSE</button>
+</dialog>
+
+<script>
+/* ============ CONFIG ============ */
+const DB = 'https://chatsystem-3121f-default-rtdb.firebaseio.com';
+const API_KEY = 'PASTE_FIREBASE_WEB_API_KEY';   // Firebase console > Project settings > General > Web API key
+const $ = (s) => document.querySelector(s);
+$('#yr').textContent = new Date().getFullYear();
+
+/* ============ MOVING LIGHTS ============ */
+const cv = $('#lights'), cx = cv.getContext('2d');
+let W, H, sy = 0, tsy = 0;
+const size = () => { W = cv.width = innerWidth; H = cv.height = innerHeight; };
+addEventListener('resize', size); size();
+addEventListener('scroll', () => {
+  tsy = scrollY;
+  const max = document.documentElement.scrollHeight - innerHeight;
+  document.documentElement.style.setProperty('--p', max > 0 ? (scrollY / max).toFixed(4) : 0);
+}, { passive: true });
+const hues = [215, 270, 190, 330];
+// flashlight: a wide, soft cone of light from above that lands in a bright, glossy pool
+function beam(ox, oy, tx, ty, k) {
+  const a = Math.atan2(ty - oy, tx - ox), L = Math.hypot(tx - ox, ty - oy) * 1.7;
+  const g = cx.createLinearGradient(ox, oy, ox + Math.cos(a) * L, oy + Math.sin(a) * L);
+  g.addColorStop(0, `rgba(255,255,255,${.05 * k})`);
+  g.addColorStop(.55, `rgba(205,220,255,${.035 * k})`);
+  g.addColorStop(1, 'rgba(160,185,255,0)');
+  cx.fillStyle = g;
+  for (let i = 0; i < 7; i++) {                 // stacked cones: bright core, feathered edge
+    const h = .05 + i * .035;
+    cx.beginPath(); cx.moveTo(ox, oy);
+    cx.lineTo(ox + Math.cos(a - h) * L, oy + Math.sin(a - h) * L);
+    cx.lineTo(ox + Math.cos(a + h) * L, oy + Math.sin(a + h) * L);
+    cx.closePath(); cx.fill();
+  }
+  // the glare where it lands: wide squashed bloom with a hot core
+  cx.save(); cx.translate(tx, ty); cx.scale(1, .5);
+  const R = Math.min(W, H) * .5 * k + 60;
+  const p = cx.createRadialGradient(0, 0, 0, 0, 0, R);
+  p.addColorStop(0, `rgba(255,255,255,${.32 * k})`);
+  p.addColorStop(.12, `rgba(225,235,255,${.18 * k})`);
+  p.addColorStop(.45, `rgba(120,150,255,${.055 * k})`);
+  p.addColorStop(1, 'rgba(0,0,0,0)');
+  cx.fillStyle = p; cx.fillRect(-R, -R, R * 2, R * 2);
+  cx.restore();
+}
+function frame(t) {
+  sy += (tsy - sy) * 0.06;                      // eased scroll so lights glide
+  t /= 1000;
+  cx.globalCompositeOperation = 'source-over';
+  cx.fillStyle = '#000'; cx.fillRect(0, 0, W, H);
+  cx.globalCompositeOperation = 'lighter';
+  // drifting orbs
+  hues.forEach((h, i) => {
+    const x = W * (.5 + .42 * Math.sin(t * .15 + i * 1.7 + sy * .0014));
+    const y = H * (.5 + .38 * Math.cos(t * .12 + i * 2.3 - sy * .0011));
+    const r = Math.max(W, H) * (.28 + .06 * Math.sin(t * .3 + i));
+    const g = cx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, `hsla(${h},90%,60%,.07)`); g.addColorStop(1, 'transparent');
+    cx.fillStyle = g; cx.fillRect(0, 0, W, H);
+  });
+  // two flashlights that swing and slide as you scroll
+  beam(W * (.5 + .38 * Math.sin(sy * .0011 + 1)), -H * .2,
+       W * (.5 + .3 * Math.sin(sy * .0013 + t * .15)), H * (.55 + .15 * Math.cos(sy * .001 + t * .1)), 1);
+  beam(W * (.5 + .4 * Math.cos(sy * .0009 + 3)), -H * .25,
+       W * (.5 + .35 * Math.cos(sy * .0012 + t * .12 + 2)), H * (.7 + .12 * Math.sin(sy * .0008)), .55);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+/* ============ GALLERY (reads /works from Firebase) ============ */
+let token = null;
+const io = new IntersectionObserver((es) => es.forEach((e) => e.isIntersecting && (e.target.classList.add('in'), io.unobserve(e.target))), { threshold: .1 });
+
+function card(key, w) {
+  const f = document.createElement('figure');
+  f.className = 'card';
+  const img = new Image(); img.src = w.img; img.alt = w.title || '';
+  const cap = document.createElement('figcaption');
+  const b = document.createElement('b'); b.textContent = w.title || 'Untitled';
+  cap.append(b, w.desc || '');
+  const del = document.createElement('button'); del.className = 'del'; del.textContent = '×';
+  del.onclick = async (e) => {
+    e.stopPropagation();
+    if (!confirm('Delete this project?')) return;
+    const r = await fetch(`${DB}/works/${key}.json?auth=${token}`, { method: 'DELETE' });
+    r.ok ? f.remove() : alert('Delete failed. Your sign-in may have expired.');
+  };
+  f.append(img, cap, del);
+  f.onclick = () => { $('#lb img').src = w.img; $('#lb').style.display = 'flex'; };
+  f.onmousemove = (e) => { const r = f.getBoundingClientRect(); f.style.setProperty('--mx', (e.clientX - r.left) + 'px'); f.style.setProperty('--my', (e.clientY - r.top) + 'px'); };
+  io.observe(f);
+  return f;
+}
+async function loadWorks() {
+  const grid = $('#grid');
+  try {
+    const data = await (await fetch(`${DB}/works.json`)).json();
+    grid.innerHTML = '';
+    const items = Object.entries(data || {}).sort((a, b) => (b[1].ts || 0) - (a[1].ts || 0));
+    if (!items.length) grid.innerHTML = '<p class="empty">Projects coming soon.</p>';
+    items.forEach(([k, w]) => grid.append(card(k, w)));
+  } catch { grid.innerHTML = '<p class="empty">Could not load projects.</p>'; }
+}
+loadWorks();
+$('#lb').onclick = () => $('#lb').style.display = 'none';
+
+/* ============ ADMIN (Firebase Auth REST + resized uploads) ============ */
+$('#adminBtn').onclick = () => token ? $('#up').showModal() : $('#login').showModal();
+$('#x1').onclick = () => $('#login').close();
+$('#x2').onclick = () => $('#up').close();
+$('#go').onclick = async () => {
+  $('#msg').textContent = 'Signing in…';
+  const r = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${API_KEY}`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: $('#em').value, password: $('#pw').value, returnSecureToken: true }) });
+  const j = await r.json();
+  if (!r.ok) { $('#msg').textContent = 'Sign in failed.'; return; }
+  token = j.idToken;
+  setTimeout(() => { token = null; document.body.classList.remove('admin'); }, (+j.expiresIn - 60) * 1000);
+  document.body.classList.add('admin');
+  $('#pw').value = ''; $('#login').close(); $('#up').showModal();
+};
+async function shrink(file, max = 1600, q = .82) {
+  const bmp = await createImageBitmap(file);
+  const s = Math.min(1, max / Math.max(bmp.width, bmp.height));
+  const c = document.createElement('canvas'); c.width = bmp.width * s; c.height = bmp.height * s;
+  c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+  return c.toDataURL('image/jpeg', q);
+}
+$('#post').onclick = async () => {
+  const file = $('#f').files[0], m = $('#umsg');
+  if (!file) { m.textContent = 'Choose an image.'; return; }
+  m.textContent = 'Uploading…';
+  const w = { title: $('#t').value.trim(), desc: $('#d').value.trim(), img: await shrink(file), ts: Date.now() };
+  const r = await fetch(`${DB}/works.json?auth=${token}`, { method: 'POST', body: JSON.stringify(w) });
+  if (!r.ok) { m.textContent = 'Upload failed. Check your database rules and sign-in.'; return; }
+  m.textContent = 'Done.'; $('#t').value = $('#d').value = $('#f').value = '';
+  loadWorks();
+};
+
+/* ============ CHAT (same /messages feed as the desktop overlay) ============ */
+let NAME = localStorage.getItem('mc-chat-name') || '';
+const log = $('#log'), box = $('#box');
+function line(m, cls) {
+  const el = document.createElement('div');
+  if (m.name) { const n = document.createElement('span'); n.className = 'n'; n.textContent = `<${m.name}> `; el.append(n, m.text); }
+  else { el.className = 'sys'; el.textContent = m.text; }
+  if (cls) el.classList.add(cls);
+  if (m.owner) el.classList.add('own');
+  const atEnd = log.scrollHeight - log.scrollTop - log.clientHeight < 40;
+  log.append(el);
+  while (log.children.length > 100) log.firstChild.remove();
+  if (atEnd) log.scrollTop = log.scrollHeight;
+}
+const tell = (t) => line({ text: t });
+function submit() {
+  const text = box.value.trim(); box.value = '';
+  if (!text) return;
+  if (text.startsWith('/name ')) { NAME = text.slice(6).trim().slice(0, 24); localStorage.setItem('mc-chat-name', NAME); return tell(`You are now ${NAME}.`); }
+  if (!NAME) { NAME = text.slice(0, 24); localStorage.setItem('mc-chat-name', NAME); return tell(`Welcome, ${NAME}! You're live.`); }
+  fetch(`${DB}/messages.json${token ? '?auth=' + token : ''}`, { method: 'POST', body: JSON.stringify({ name: NAME, text, ts: Date.now(), ...(token && { owner: true }) }) })
+    .catch((e) => tell('Send failed: ' + e.message));
+}
+$('#send').onclick = submit;
+box.addEventListener('keydown', (e) => e.key === 'Enter' && submit());
+tell(NAME ? `Chatting as ${NAME}. Type /name <name> to change.` : 'Type a name and press Enter to join.');
+
+const seen = new Set(); let first = true, warned = false;
+const es = new EventSource(`${DB}/messages.json`);
+es.addEventListener('put', (e) => {
+  const { path, data } = JSON.parse(e.data);
+  const items = path === '/'
+    ? Object.entries(data || {}).sort((a, b) => (a[1].ts || 0) - (b[1].ts || 0))
+    : data ? [[path.slice(1), data]] : [];
+  for (const [k, m] of items) { if (seen.has(k) || !m || typeof m.text !== 'string') continue; seen.add(k); line(m); }
+  if (path === '/') first = false;
+});
+es.onopen = () => { warned = false; };
+es.onerror = () => { if (!warned) { warned = true; tell('Connection problem, retrying…'); } };
+</script>
+</body>
+</html>
